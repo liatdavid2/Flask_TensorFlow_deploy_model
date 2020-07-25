@@ -7,6 +7,7 @@ import joblib
 from tensorflow.keras.models import load_model
 from keras import backend as K
 import tensorflow as tf
+from IsValidJson import IsValidJson
 
 # load the model, and pass in the custom metric function
 global graph
@@ -30,10 +31,13 @@ class Tf_classification_model(Resource):
     # http://127.0.0.1:7777/Tf_classification_model
     # body:{"sepal_l":6.3,"sepal_w":2.7,"petal_l":4.9,"petal_w":1.8}
     def post(self):        
-        some_json = request.get_json()
+        #post body must be in valid json format
+        try:        
+            some_json = request.get_json()
+        except:
+            return "not a valid json format",500  
+        res,status_code = IsValidJson.check(some_json)
+        if status_code != 200: return res,500
         flower_scaler = joblib.load('models/tensorflow/iris_scaler.pkl')
-        results = self.return_prediction(model,flower_scaler,some_json)
+        results = self.return_prediction(model,flower_scaler,res)
         return results
-
-    def get(self):  
-        return 1
